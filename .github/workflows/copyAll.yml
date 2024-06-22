@@ -1,0 +1,47 @@
+name: Copy Docker Image
+on: 
+  workflow_dispatch:
+    inputs:
+      source:
+        description: '镜像源 (Registry)'     
+        required: true
+        default: 'docker.io'
+      destination:
+        description: '目标源 (Registry)'
+        required: true
+        default: 'registry.cn-chengdu.aliyuncs.com'
+      source_repo:
+        description: '仓库及标签 (格式 repo:tag)'
+        required: true
+        default: ''
+      destination_repo:
+        description: '目标仓库及标签 (格式 repo:tag)'
+        required: true
+        default: 'parent/'
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: arm64
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to source registry
+      run: echo ${{ secrets.SOURCE_CREDENTIAL }} | docker login ${{ github.event.inputs.source }} --username ${{ secrets.SOURCE_USERNAME }} --password-stdin
+
+    - name: Log in to destination registry
+      run: echo ${{ secrets.DESTINATION_CREDENTIAL }} | docker login ${{ github.event.inputs.destination }} --username ${{ secrets.DESTINATION_USERNAME }} --password-stdin
+
+    - name: Pull and retag image
+      run: |
+        docker pull ${{ github.event.inputs.source }}/${{ github.event.inputs.source_repo }}
+        docker tag ${{ github.event.inputs.source }}/${{ github.event.inputs.source_repo }} ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }}
+
+    - name: Push image to destination
+      run: |
+        docker push ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }}
