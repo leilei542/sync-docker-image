@@ -1,4 +1,4 @@
-name: Copy Docker Image
+name: Copy All Docker Image
 on: 
   workflow_dispatch:
     inputs:
