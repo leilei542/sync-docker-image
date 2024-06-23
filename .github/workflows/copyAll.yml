@@ -3,7 +3,7 @@ on:
     inputs:
       source:
         description: '镜像源 (Registry)'     
-        required: true
+        required: false
         default: 'docker.io'
       destination:
         description: '目标源 (Registry)'
