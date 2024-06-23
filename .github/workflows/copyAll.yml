@@ -42,4 +42,4 @@ jobs:
       
       - name: Push image to Alibaba Cloud Container Registry
         run: |
-          docker push registry.cn-chengdu.aliyuncs.com/${{ github.event.inputs.destination_repo }}
+          docker push registry.cn-chengdu.aliyuncs.com/${{ github.event.inputs.destination_repo }}-linux-arm64
