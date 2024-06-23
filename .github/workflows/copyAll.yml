@@ -17,6 +17,10 @@ on:
         description: '目标仓库及标签 (格式 repo:tag)'
         required: true
         default: 'parent/'
+      destination_platform:
+        description: '平台linux/ (格式 platform)'
+        required: true
+        default: 'arm64'
 
 jobs:
   docker:
@@ -31,8 +35,8 @@ jobs:
       - name: Pull and push multi-platform images
         run: |
           docker buildx create --use
-          docker pull ${{ github.event.inputs.source_repo }} --platform linux/arm64
-          docker tag ${{ github.event.inputs.source_repo }} ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }}
+          docker pull ${{ github.event.inputs.source_repo }} --platform linux/${{ github.event.inputs.destination_platform }}
+          docker tag ${{ github.event.inputs.source_repo }} ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }}-linux-${{ github.event.inputs.destination_platform }}
       - name: Login to Alibaba Cloud Container Registry
         uses: docker/login-action@v3
         with:
@@ -42,4 +46,4 @@ jobs:
       
       - name: Push image to Alibaba Cloud Container Registry
         run: |
-          docker push ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }}
+          docker push ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }}-linux-${{ github.event.inputs.destination_platform }}
