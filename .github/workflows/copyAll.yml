@@ -32,7 +32,7 @@ jobs:
         run: |
           docker buildx create --use
           docker pull ${{ github.event.inputs.source_repo }} --platform linux/arm64
-          docker tag ${{ github.event.inputs.source_repo }} registry.cn-chengdu.aliyuncs.com/${{ github.event.inputs.destination_repo }}-linux-arm64
+          docker tag ${{ github.event.inputs.source_repo }} ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }}
       - name: Login to Alibaba Cloud Container Registry
         uses: docker/login-action@v3
         with:
@@ -42,4 +42,4 @@ jobs:
       
       - name: Push image to Alibaba Cloud Container Registry
         run: |
-          docker push registry.cn-chengdu.aliyuncs.com/${{ github.event.inputs.destination_repo }}-linux-arm64
+          docker push ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }}
