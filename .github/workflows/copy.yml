@@ -4,8 +4,8 @@ on:
     inputs:
       source:
         description: '镜像源 (Registry)'     
-        required: true
-        default: 'docker.io'
+        required: false
+        default: ''
       destination:
         description: '目标源 (Registry)'
         required: true
