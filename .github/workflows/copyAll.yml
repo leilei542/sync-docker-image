@@ -31,5 +31,5 @@ jobs:
       - name: Pull and push multi-platform images
         run: |
           docker buildx create --use
-          docker pull ${{ github.event.inputs.source }}/${{ github.event.inputs.source_repo }}
+          docker pull ${{ github.event.inputs.source_repo }} 
           docker buildx build --platform linux/amd64,linux/arm64 -t ${{ github.event.inputs.destination }}/${{ github.event.inputs.destination_repo }} --push ${{ github.event.inputs.source }}/${{ github.event.inputs.source_repo }}
