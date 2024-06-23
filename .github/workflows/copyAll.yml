@@ -20,34 +20,34 @@ on:
         default: 'parent/'
 
 jobs:
-  copy:
+  pull_and_push:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
-      with:
-        platforms: linux/arm64
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Log in to source registry
-      env:
-        USERNAME: ${{ secrets.SOURCE_USERNAME }}
-        PASSWORD: ${{ secrets.SOURCE_CREDENTIAL }}
-      run: echo $PASSWORD | docker login ${{ github.event.inputs.source }} --username $USERNAME --password-stdin
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Log in to destination registry
       env:
-        USERNAME: ${{ secrets.DESTINATION_USERNAME }}
-        PASSWORD: ${{ secrets.DESTINATION_CREDENTIAL }}
+        USERNAME: ${{ secrets.ALICLOUD_USERNAME }}
+        PASSWORD: ${{ secrets.ALICLOUD_PASSWORD }}
       run: echo $PASSWORD | docker login ${{ github.event.inputs.destination }} --username $USERNAME --password-stdin
 
-    - name: Copy Docker Images
-      uses: ikrong/docker-sync-action@main
-      with:
-        source: ${{ github.event.inputs.source }}
-        source-credential: ${{ secrets.SOURCE_CREDENTIAL }}
-        destination: ${{ github.event.inputs.destination }}
-        destination-credential: ${{ secrets.DESTINATION_CREDENTIAL }}
-        copy: "${{ github.event.inputs.source_repo }} ${{ github.event.inputs.destination_repo }}"
+    - name: Pull Docker Images, Tag, and Push
+      run: |
+        images="${{ github.event.inputs.docker_images }}"
+        destination="${{ github.event.inputs.destination }}"
+        destination_repo="${{ github.event.inputs.destination_repo }}"
+        IFS=',' read -r -a image_array <<< "$images"
+        for image in "${image_array[@]}"; do
+          docker pull "${image}" --platform "linux/arm64"
+          image_name=$(echo "${image}" | awk -F':' '{print $1}')
+          image_tag=$(echo "${image}" | awk -F':' '{print $2}')
+          new_image="${destination}/${destination_repo}/${image_name}:${image_tag}"
+          docker tag "${image}" "${new_image}"
+          docker push "${new_image}"
+        done
+
+    - name: Clean up intermediate files
+      run: |
+        docker system prune -f
