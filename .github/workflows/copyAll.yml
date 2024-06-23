@@ -1,53 +1,25 @@
-name: Copy All Docker Image
-on: 
-  workflow_dispatch:
-    inputs:
-      source:
-        description: '镜像源 (Registry)'     
-        required: true
-        default: 'docker.io'
-      destination:
-        description: '目标源 (Registry)'
-        required: true
-        default: 'registry.cn-chengdu.aliyuncs.com'
-      source_repo:
-        description: '仓库及标签 (格式 repo:tag)'
-        required: true
-        default: ''
-      destination_repo:
-        description: '目标仓库及标签 (格式 repo:tag)'
-        required: true
-        default: 'parent/'
+name: Build and Push Docker Images
+on:
+  push:
+    branches:
+      - main  # 触发条件可以根据你的需求调整
 
 jobs:
-  pull_and_push:
+  build_and_push:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2  # 检出代码仓库
 
-    - name: Log in to destination registry
-      env:
-        USERNAME: ${{ secrets.ALICLOUD_USERNAME }}
-        PASSWORD: ${{ secrets.ALICLOUD_PASSWORD }}
-      run: echo $PASSWORD | docker login ${{ github.event.inputs.destination }} --username $USERNAME --password-stdin
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v6.1.0
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}  # Docker Hub 用户名或其他 Docker 注册表的用户名
+        password: ${{ secrets.DOCKER_PASSWORD }}  # Docker Hub 密码或其他 Docker 注册表的密码
+        repository: yourusername/yourimage  # 要推送的 Docker 镜像仓库路径，可以是带用户名的完整路径
+        tags: |
+          latest  # 镜像的标签，可以是多个，使用换行符分隔
 
-    - name: Pull Docker Images, Tag, and Push
+    - name: Clean up
       run: |
-        images="${{ github.event.inputs.docker_images }}"
-        destination="${{ github.event.inputs.destination }}"
-        destination_repo="${{ github.event.inputs.destination_repo }}"
-        IFS=',' read -r -a image_array <<< "$images"
-        for image in "${image_array[@]}"; do
-          docker pull "${image}" --platform "linux/arm64"
-          image_name=$(echo "${image}" | awk -F':' '{print $1}')
-          image_tag=$(echo "${image}" | awk -F':' '{print $2}')
-          new_image="${destination}/${destination_repo}/${image_name}:${image_tag}"
-          docker tag "${image}" "${new_image}"
-          docker push "${new_image}"
-        done
-
-    - name: Clean up intermediate files
-      run: |
-        docker system prune -f
+        docker image prune -f  # 清理未使用的镜像，可选步骤
