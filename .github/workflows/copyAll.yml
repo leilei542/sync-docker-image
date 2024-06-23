@@ -28,11 +28,20 @@ jobs:
       with:
         platforms: linux/arm64
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
     - name: Log in to source registry
-      run: echo ${{ secrets.SOURCE_CREDENTIAL }} | docker login ${{ github.event.inputs.source }} --username ${{ secrets.SOURCE_USERNAME }} --password-stdin
+      env:
+        USERNAME: ${{ secrets.SOURCE_USERNAME }}
+        PASSWORD: ${{ secrets.SOURCE_CREDENTIAL }}
+      run: echo $PASSWORD | docker login ${{ github.event.inputs.source }} --username $USERNAME --password-stdin
 
     - name: Log in to destination registry
-      run: echo ${{ secrets.DESTINATION_CREDENTIAL }} | docker login ${{ github.event.inputs.destination }} --username ${{ secrets.DESTINATION_USERNAME }} --password-stdin
+      env:
+        USERNAME: ${{ secrets.DESTINATION_USERNAME }}
+        PASSWORD: ${{ secrets.DESTINATION_CREDENTIAL }}
+      run: echo $PASSWORD | docker login ${{ github.event.inputs.destination }} --username $USERNAME --password-stdin
 
     - name: Copy Docker Images
       uses: ikrong/docker-sync-action@main
