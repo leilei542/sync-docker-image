@@ -31,8 +31,8 @@ jobs:
       - name: Pull and push multi-platform images
         run: |
           docker buildx create --use
-          docker pull ${{ github.event.inputs.source_repo }} --platform linux/amd6
-          docker tag ${{ github.event.inputs.source_repo }} registry.cn-chengdu.aliyuncs.com/my-aliyun-repo/mysql:latest
+          docker pull ${{ github.event.inputs.source_repo }} --platform linux/arm64
+          docker tag ${{ github.event.inputs.source_repo }} ${{ github.event.inputs.destination_repo }}:linux-arm64
           
       - name: Login to Alibaba Cloud Container Registry
         uses: docker/login-action@v3
